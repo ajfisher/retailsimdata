@@ -1,0 +1,35 @@
+store_id,country_code,city,name,channel,open,size
+au_01,AU,Melbourne,St Kilda,RETAIL,TRUE,SMALL
+au_02,AU,Melbourne,Elwood,RETAIL,TRUE,MEDIUM
+au_03,AU,Melbourne,Fitzroy,RETAIL,TRUE,MEDIUM
+au_04,AU,Melbourne,City,RETAIL,TRUE,LARGE
+au_05,AU,Melbourne,Hawthorn Wholesale,WHOLESALE,TRUE,MEDIUM
+au_06,AU,Melbourne,City Myer,DEPT_STORE,TRUE,LARGE
+au_07,AU,Melbourne,Online,ONLINE,TRUE,MEDIUM
+au_08,AU,Melbourne,City DJs,DEPT_STORE,TRUE,LARGE
+au_09,AU,Sydney,Cronulla,RETAIL,TRUE,SMALL
+au_10,AU,Sydney,Alexandria,RETAIL,TRUE,SMALL
+au_11,AU,Sydney,North Sydney,RETAIL,TRUE,MEDIUM
+au_12,AU,Sydney,Bondi,RETAIL,TRUE,LARGE
+au_13,AU,Sydney,Sydney City Myer,DEPT_STORE,TRUE,LARGE
+au_14,AU,Sydney,Sydney City DJs,DEPT_STORE,TRUE,LARGE
+au_15,AU,Sydney,Ryde,WHOLESALE,TRUE,SMALL
+au_16,AU,Brisbane,City,RETAIL,TRUE,MEDIUM
+au_17,AU,Brisbane,City Myer,DEPT_STORE,TRUE,MEDIUM
+uk_01,UK,London,Selfridges,DEPT_STORE,TRUE,LARGE
+uk_02,UK,London,Harvey Nicholls,DEPT_STORE,TRUE,LARGE
+uk_03,UK,London,Chelsea,RETAIL,TRUE,MEDIUM
+uk_04,UK,London,Shoreditch,RETAIL,TRUE,MEDIUM
+uk_05,UK,London,Blackheath,WHOLESALE,TRUE,SMALL
+uk_06,UK,Manchester,City,RETAIL,TRUE,SMALL
+uk_07,UK,London,Online,ONLINE,TRUE,MEDIUM
+us_01,US,New York,Chelsea,RETAIL,TRUE,MEDIUM
+us_02,US,New York,Bleeker,RETAIL,TRUE,MEDIUM
+us_03,US,New York,Greenwich,RETAIL,TRUE,SMALL
+us_04,US,San Francisco,Downtown,RETAIL,TRUE,MEDIUM
+us_05,US,Portland,Pearl,RETAIL,FALSE,MEDIUM
+us_06,US,New York,Barneys,DEPT_STORE,TRUE,LARGE
+us_07,US,Los Angeles,Santa Monica,RETAIL,TRUE,MEDIUM
+us_08,US,Los Angeles,Hollywood,WHOLESALE,TRUE,MEDIUM
+us_09,US,Los Angeles,Century City,RETAIL,TRUE,SMALL
+us_10,US,New York,Online,ONLINE,TRUE,LARGE
