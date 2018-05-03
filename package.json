@@ -17,7 +17,9 @@
   },
   "homepage": "https://github.com/ajfisher/retailsimdata#readme",
   "dependencies": {
-    "commander": "^2.15.1"
+    "commander": "^2.15.1",
+    "csv-parse": "^2.2.0",
+    "lodash": "^4.17.10"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
