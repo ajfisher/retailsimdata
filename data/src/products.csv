@@ -1,4 +1,4 @@
-SKU,Name,Category,Cost Price,Wholesale Price,Retail Price,Available
+sku,name,category,cost_price,wholesale_price,retail_price,available
 sk_01,Social Dog,SKIN,40,60,100,TRUE
 ha_01,April Velour,HAIR,54,81,135,TRUE
 fr_01,Brutal Noir,FRAGRANCE,85,127.5,212.5,TRUE

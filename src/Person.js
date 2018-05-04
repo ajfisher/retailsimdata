@@ -29,7 +29,6 @@ class Person {
         this.store_country = opts.store_country || "AU";
         this.stores = opts.stores || {};
 
-        console.log(categories, products, stores);
     }
 
     static config (options) {
