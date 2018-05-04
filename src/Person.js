@@ -11,6 +11,20 @@ let store_allocation_table = [];
 
 const STORE_ALLOCATION = ["ONLINE", "ONLINE_SINGLE", "ONLINE_MULTI", "SINGLE", "MULTI"];
 const ALLOC_RATIOS = [ 10, 20, 5, 45, 20 ];
+const FREQ = {
+    SLOW: {
+        p: 0.6,
+        days: 360,
+    },
+    MEDIUM: {
+        p: 0.3,
+        days: 180,
+    },
+    FAST: {
+        p: 0.1,
+        days: 90,
+    },
+};
 
 class Person {
 
@@ -52,13 +66,24 @@ class Person {
             }
         });
 
-        console.log(store_allocation_table);
     }
 
     derive () {
         // derives the extended fields based on the other data
         this.allocate_store_country();
         this.allocate_stores();
+
+        // determine frequency of purchase
+        // roll d100 and compare to frequency table
+        const freq = Math.random();
+        if (freq < FREQ.SLOW.p) {
+            this.frequency = "SLOW";
+        } else if (freq > 1 - FREQ.FAST.p) {
+            this.frequency = "FAST";
+        } else {
+            this.frequency = "MEDIUM";
+        }
+
         console.log(this);
 
     }
@@ -68,7 +93,7 @@ class Person {
     }
 
     category_weights () {
-        // determine the category weighting if blank
+        // determine the category weighting for a customer
 
     }
 
