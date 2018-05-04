@@ -26,12 +26,41 @@ const FREQ = {
     },
 };
 
+const CAT_PREFS = {
+    SKIN: {
+        p: 0.6,
+    },
+    HAIR: {
+        p: 0.4,
+    },
+    FRAGRANCE: {
+        p: 0.1,
+    },
+    HOME: {
+        p: 0.4,
+    }
+};
+
+const CAT_LOADING = {
+    HIGH: {
+        p: 0.1,
+        range: [2, 5],
+    },
+    MEDIUM: {
+        p: 0.3,
+        range: [1, 3],
+    },
+    LOW : {
+        p: 0.6,
+        range: [1, 2],
+    }
+};
+
 class Person {
 
     constructor (options) {
 
         let opts = options || {};
-
 
         this.fname = opts.fname || "";
         this.sname = opts.sname || "";
@@ -44,11 +73,14 @@ class Person {
         this.registered = moment(opts.registered) || null;
         this.phone = opts.phone || null;
 
+        this.categories = [];
         this.category_weighting = opts.weighting || {};
         this.frequency = opts.frequency || {};
         this.store_country = opts.store_country || "AU";
         this.stores = opts.stores || [];
+        this.products = {};
 
+        this.transactions = [];
     }
 
     static config (options) {
@@ -72,6 +104,13 @@ class Person {
         // derives the extended fields based on the other data
         this.allocate_store_country();
         this.allocate_stores();
+        this.category_weights();
+        if (this.categories.length == 0) {
+            // run this a second time just so we only have a small number
+            // of people with zero categories.
+            this.category_weights();
+        }
+        this.allocate_products();
 
         // determine frequency of purchase
         // roll d100 and compare to frequency table
@@ -90,11 +129,49 @@ class Person {
 
     create_transactions() {
 
+
     }
 
     category_weights () {
         // determine the category weighting for a customer
 
+        _.map(CAT_PREFS, (pref, key) => {
+            if (Math.random() < pref.p) {
+                this.categories.push(key);
+
+                // roll d100 and look up on weight key for cat range ownership
+                const cat_rnd = Math.random();
+                if (cat_rnd < CAT_LOADING.LOW.p) {
+                    this.category_weighting[key] = "LOW";
+                } else if (cat_rnd > 1 -CAT_LOADING.HIGH.p) {
+                    this.category_weighting[key] = "HIGH";
+                } else {
+                    this.category_weighting[key] = "MEDIUM";
+                }
+            }
+        });
+    }
+
+    allocate_products() {
+        // take the preferences and then allocate a set of products to it.
+
+        _.map(this.category_weighting, (weight, cat) => {
+            let available_products = _.filter(products, {'category': cat});
+            // choose random value from the pref range.
+            const min = CAT_LOADING[weight].range[0];
+            const max = CAT_LOADING[weight].range[1];
+            const range_amt = Math.floor(Math.random() * (max - min) + min);
+
+            // push the products into the list:
+            this.products[cat] = [];
+            for (let i = 0; i < range_amt; i++) {
+                const prod_index = Math.floor(Math.random() * available_products.length);
+                this.products[cat].push(available_products[prod_index].sku);
+            }
+            // deduplicate
+            this.products[cat] = _.uniq(this.products[cat]);
+
+        });
     }
 
     allocate_store_country() {
