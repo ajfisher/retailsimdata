@@ -19,7 +19,8 @@
   "dependencies": {
     "commander": "^2.15.1",
     "csv-parse": "^2.2.0",
-    "lodash": "^4.17.10"
+    "lodash": "^4.17.10",
+    "moment": "^2.22.1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

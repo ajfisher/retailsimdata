@@ -39,7 +39,17 @@ Person.config({
 // load up people and then start processing each person to create values etc.
 const people_file = fs.readFileSync(path.join(data_files, "customers.csv"), 'UTF8');
 csvparse(people_file, {columns: true}, (err, raw_people) => {
-    console.log("Got the data now");
+    console.log("Got the person now");
     console.log(raw_people.length);
+
+    raw_people.forEach((row, i) => {
+        if (i < 10) {
+            console.log(row);
+            let p = new Person(row);
+            p.derive();
+        }
+    })
+
+
 });
 
