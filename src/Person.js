@@ -30,7 +30,7 @@ const CAT_LOADING = {
     LOW : { p: 0.6, range: [1, 2], }
 };
 
-const ENGAGEMENT = { HIGH: 90, MEDIUM: 70, LOW: 50, NONE: 20 };
+const ENGAGEMENT = { HIGH: 90, MEDIUM: 70, LOW: 50, NONE: 30 };
 
 const ENGAGEMENT_MODIFIER = {
     RETAIL: { LOW: -2, HIGH: 10, START: 5, },
@@ -233,7 +233,27 @@ class Person {
             });
 
             // calculate the engagement update
+            const e_mod = ENGAGEMENT_MODIFIER[store.channel];
+            this.engagement += _.random(e_mod.LOW, e_mod.HIGH);
 
+            if (this.engagement > 95) this.engagement = 95;
+            if (this.engagement < 15) this.engagement = 15;
+
+            if (this.frequency == "SLOW") {
+                if (this.engagement > ENGAGEMENT.MEDIUM) {
+                    this.frequency = "MEDIUM";
+                }
+            } else if (this.frequency == "FAST") {
+                if (this.engagement < ENGAGEMENT.MEDIUM) {
+                    this.frequency = "MEDIUM";
+                }
+            } else {
+                if (this.engagement < ENGAGEMENT.MEDIUM) {
+                    this.frequency = "SLOW";
+                } else if (this.engagement >ENGAGEMENT.HIGH) {
+                    this.frequency = "FAST";
+                }
+            }
 
             const freq = FREQ[this.frequency];
             const next_tx = freq.days + rand_range(freq.range[0], freq.range[1]);
