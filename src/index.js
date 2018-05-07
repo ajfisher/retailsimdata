@@ -47,9 +47,9 @@ csvparse(people_file, {columns: true}, (err, raw_people) => {
             console.log(row);
             let p = new Person(row);
             p.derive();
+            p.create_transactions();
+            console.log(p);
         }
     })
-
-
 });
 

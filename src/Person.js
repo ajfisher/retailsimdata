@@ -12,9 +12,9 @@ let store_allocation_table = [];
 const STORE_ALLOCATION = ["ONLINE", "ONLINE_SINGLE", "ONLINE_MULTI", "SINGLE", "MULTI"];
 const ALLOC_RATIOS = [ 10, 20, 5, 45, 20 ];
 const FREQ = {
-    SLOW: { p: 0.6, days: 360, },
-    MEDIUM: { p: 0.3, days: 180, },
-    FAST: { p: 0.1, days: 90, },
+    SLOW: { p: 0.6, days: 360, range: [-60, 120] },
+    MEDIUM: { p: 0.3, days: 180, range: [-15, 90]},
+    FAST: { p: 0.1, days: 90, range: [-10, 30] },
 };
 
 const CAT_PREFS = {
@@ -30,13 +30,43 @@ const CAT_LOADING = {
     LOW : { p: 0.6, range: [1, 2], }
 };
 
-const ENGAGEMENT = { HIGH: 90, MEDIUM: 70, LOW: 50 };
+const ENGAGEMENT = { HIGH: 90, MEDIUM: 70, LOW: 50, NONE: 20 };
 
 const ENGAGEMENT_MODIFIER = {
     RETAIL: { LOW: -2, HIGH: 10, START: 5, },
     DEPT_STORE: { LOW: -5, HIGH: 5, START: 0, },
     ONLINE: { LOW: -10, HIGH: 5, START: -1, },
     WHOLESALE: { LOW: -5, HIGH: 2, START: -2, },
+}
+
+const PURCHASE_QTY = {
+    RETAIL: {
+        LOW: { p: 0.9, range: [1,1]},
+        MEDIUM: {p: 0.09, range: [1,2]},
+        HIGH: {p: 0.01, range: [2, 5]},
+    },
+    DEPT_STORE: {
+        LOW: { p: 0.8, range: [1,1]},
+        MEDIUM: {p: 0.19, range: [1,2]},
+        HIGH: {p: 0.01, range: [2, 5]},
+    },
+    ONLINE: {
+        LOW: { p: 0.8, range: [1,1]},
+        MEDIUM: {p: 0.19, range: [2,3]},
+        HIGH: {p: 0.01, range: [2, 5]},
+    },
+    WHOLESALE: {
+        LOW: { p: 0.6, range: [5,10]},
+        MEDIUM: {p: 0.3, range: [10,20]},
+        HIGH: {p: 0.1, range: [20, 50]},
+    }
+}
+
+const rand_range = (low, high) => {
+    // takes the range value and returns from within iut.
+    if (low === high ) return low;
+
+    return (Math.floor(Math.random() * (high - low) + low));
 }
 
 class Person {
@@ -61,7 +91,7 @@ class Person {
         this.frequency = opts.frequency || {};
         this.store_country = opts.store_country || "AU";
         this.stores = opts.stores || [];
-        this.products = {};
+        this.products = [];
 
         this.transactions = [];
     }
@@ -118,13 +148,100 @@ class Person {
                 this.frequency = "SLOW";
             }
         }
-
-        console.log(this);
-
     }
 
     create_transactions() {
+        //creates a set of transactions for this customer
 
+        const start_date = this.registered;
+
+        // roll d100 and if lower than 80 then registered date is first
+        // transaction date. If not then it's between 1 and 30d in the future.
+        if (Math.random() > 0.8) {
+            start_date.add(Math.floor(Math.random() * 30), 'days');
+        }
+
+        let tx_date = start_date;
+        let transactions = [];
+
+        // roll forward in time by an amount that is randomly derived from the
+        // frequency period.
+        // create a new transaction that is a set of items
+        // items have: date, seq_no, sku, qty, line_total, store_id, customer_id
+
+        while (tx_date.isBefore("2018-01-01") && this.engagement > ENGAGEMENT.NONE) {
+
+            // create the transaction
+
+            const store = _.filter(stores, {"store_id":_.sample(this.stores)})[0];
+            // determine the number of products to buy.
+            let no_prods = rand_range(1, this.products.length);
+            let tx_prods = [];
+            // for each product, determine the quantity.
+            this.products.forEach((sku) => {
+                // if random() < engagement then add it to the list
+                if (Math.random() * 100 < this.engagement) {
+                    if (tx_prods.length < no_prods) {
+                        tx_prods.push({sku: sku});
+                    }
+                }
+            });
+
+            while (tx_prods.length < no_prods) {
+                // need to add some random products
+                tx_prods.push({sku: _.sample(products).sku});
+                tx_prods = _.uniq(tx_prods);
+            }
+
+            // add the final parts and then push onto the transactions array
+            tx_prods.forEach((item, i) => {
+
+                item.date = tx_date.toISOString();
+                item.store_id = store.store_id;
+                item.seq_no = i + 1;
+
+                // roll d100 on qty and then modify based on engagement
+                const qty_rnd = Math.random();
+                let qty_range = PURCHASE_QTY[store.channel].MEDIUM.range;
+                if (qty_rnd < PURCHASE_QTY[store.channel].LOW.p) {
+                    if (this.engagement > ENGAGEMENT.HIGH) {
+                        qty_range = PURCHASE_QTY[store.channel].MEDIUM.range;
+                    } else {
+                        qty_range = PURCHASE_QTY[store.channel].LOW.range;
+                    }
+                } else if (qty_rnd > 1 - PURCHASE_QTY[store.channel].HIGH.p) {
+                    if (this.engagement < ENGAGEMENT.LOW) {
+                        qty_range = PURCHASE_QTY[store.channel].MEDIUM.range;
+                    } else {
+                        qty_range = PURCHASE_QTY[store.channel].LOW.range;
+                    }
+                }
+
+                item.qty = _.random(qty_range[0], qty_range[1]);
+
+                // now get the pricing.
+                if (store.channel == "WHOLESALE") {
+                    item.price = _.filter(products, {'sku': item.sku})[0].wholesale_price * 1.0;
+                } else {
+                    item.price = _.filter(products, {'sku': item.sku})[0].retail_price * 1.0;
+                }
+
+                item.line_total = item.price * item.qty;
+
+                this.transactions.push(item);
+
+            });
+
+            // calculate the engagement update
+
+
+            const freq = FREQ[this.frequency];
+            const next_tx = freq.days + rand_range(freq.range[0], freq.range[1]);
+
+            //console.log(store.store_id, store.channel, next_tx, tx_date);
+            tx_date.add(next_tx, 'days');
+
+        }
 
     }
 
@@ -159,13 +276,13 @@ class Person {
             const range_amt = Math.floor(Math.random() * (max - min) + min);
 
             // push the products into the list:
-            this.products[cat] = [];
+            //this.products[cat] = [];
             for (let i = 0; i < range_amt; i++) {
                 const prod_index = Math.floor(Math.random() * available_products.length);
-                this.products[cat].push(available_products[prod_index].sku);
+                this.products.push(available_products[prod_index].sku);
             }
             // deduplicate
-            this.products[cat] = _.uniq(this.products[cat]);
+            this.products = _.uniq(this.products);
 
         });
     }
@@ -246,7 +363,7 @@ class Person {
         // determines the starting level of engagement for the customer
 
         // start with a baseline of 60 ± 10
-        this.engagement = 60 + Math.floor(Math.random() * 20 - 10);
+        this.engagement = _.random(50, 70); //60 + Math.floor(Math.random() * 20 - 10);
         // for each store add the start point of ranges on engagement ased on type
         this.stores.forEach((store) => {
             // get the store details
@@ -254,9 +371,7 @@ class Person {
             this.engagement += ENGAGEMENT_MODIFIER[s.channel].START;
         });
         // add +3 for each product the person has
-        _.forEach(this.products, (cat) => {
-            this.engagement += cat.length * 3;
-        });
+        this.engagement += this.products.length * 3;
     }
 }
 
