@@ -12,49 +12,32 @@ let store_allocation_table = [];
 const STORE_ALLOCATION = ["ONLINE", "ONLINE_SINGLE", "ONLINE_MULTI", "SINGLE", "MULTI"];
 const ALLOC_RATIOS = [ 10, 20, 5, 45, 20 ];
 const FREQ = {
-    SLOW: {
-        p: 0.6,
-        days: 360,
-    },
-    MEDIUM: {
-        p: 0.3,
-        days: 180,
-    },
-    FAST: {
-        p: 0.1,
-        days: 90,
-    },
+    SLOW: { p: 0.6, days: 360, },
+    MEDIUM: { p: 0.3, days: 180, },
+    FAST: { p: 0.1, days: 90, },
 };
 
 const CAT_PREFS = {
-    SKIN: {
-        p: 0.6,
-    },
-    HAIR: {
-        p: 0.4,
-    },
-    FRAGRANCE: {
-        p: 0.1,
-    },
-    HOME: {
-        p: 0.4,
-    }
+    SKIN: { p: 0.6, },
+    HAIR: { p: 0.4, },
+    FRAGRANCE: { p: 0.1, },
+    HOME: { p: 0.4, }
 };
 
 const CAT_LOADING = {
-    HIGH: {
-        p: 0.1,
-        range: [2, 5],
-    },
-    MEDIUM: {
-        p: 0.3,
-        range: [1, 3],
-    },
-    LOW : {
-        p: 0.6,
-        range: [1, 2],
-    }
+    HIGH: { p: 0.1, range: [2, 5], },
+    MEDIUM: { p: 0.3, range: [1, 3], },
+    LOW : { p: 0.6, range: [1, 2], }
 };
+
+const ENGAGEMENT = { HIGH: 90, MEDIUM: 70, LOW: 50 };
+
+const ENGAGEMENT_MODIFIER = {
+    RETAIL: { LOW: -2, HIGH: 10, START: 5, },
+    DEPT_STORE: { LOW: -5, HIGH: 5, START: 0, },
+    ONLINE: { LOW: -10, HIGH: 5, START: -1, },
+    WHOLESALE: { LOW: -5, HIGH: 2, START: -2, },
+}
 
 class Person {
 
@@ -111,16 +94,29 @@ class Person {
             this.category_weights();
         }
         this.allocate_products();
+        this.determine_engagement();
 
         // determine frequency of purchase
         // roll d100 and compare to frequency table
         const freq = Math.random();
         if (freq < FREQ.SLOW.p) {
-            this.frequency = "SLOW";
+            if (this.engagement > ENGAGEMENT.MEDIUM) {
+                this.frequency = "MEDIUM";
+            } else {
+                this.frequency = "SLOW";
+            }
         } else if (freq > 1 - FREQ.FAST.p) {
-            this.frequency = "FAST";
+            if (this.engagement < ENGAGEMENT.MEDIUM) {
+                this.frequency = "MEDIUM";
+            } else {
+                this.frequency = "FAST";
+            }
         } else {
-            this.frequency = "MEDIUM";
+            if (this.engagement > ENGAGEMENT.MEDIUM) {
+                this.frequency = "MEDIUM";
+            } else {
+                this.frequency = "SLOW";
+            }
         }
 
         console.log(this);
@@ -244,6 +240,23 @@ class Person {
                 this.stores.push(store_1);
                 break;
         }
+    }
+
+    determine_engagement() {
+        // determines the starting level of engagement for the customer
+
+        // start with a baseline of 60 ± 10
+        this.engagement = 60 + Math.floor(Math.random() * 20 - 10);
+        // for each store add the start point of ranges on engagement ased on type
+        this.stores.forEach((store) => {
+            // get the store details
+            const s = _.filter(stores, {"store_id": store})[0];
+            this.engagement += ENGAGEMENT_MODIFIER[s.channel].START;
+        });
+        // add +3 for each product the person has
+        _.forEach(this.products, (cat) => {
+            this.engagement += cat.length * 3;
+        });
     }
 }
 
